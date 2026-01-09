@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Acelin • AI Pacar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    :root {
+      --bg: #020617;
+      --panel: #0b1220;
+      --user: #2563eb;
+      --ai: #ec4899;
+      --text: #e5e7eb;
+      --glow: 0 0 25px rgba(236,72,153,.45);
+    }
+
+    * { box-sizing: border-box; }
+
+    /* 🌌 BODY / BACKGROUND */
+    body {
+      margin: 0;
+      font-family: "Inter", "Segoe UI", Arial, sans-serif;
+      background:
+        linear-gradient(rgba(2,6,23,0.35), rgba(2,6,23,0.35)),
+        url("https://i.supaimg.com/10943e59-d4b9-4b1b-9e28-06a5a0126113.png") no-repeat center center;
+      background-size: cover;
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      animation: bgZoom 20s ease-in-out infinite;
+    }
+
+    @keyframes bgZoom {
+      0% { background-size: 100% 100%; }
+      50% { background-size: 108% 108%; }
+      100% { background-size: 100% 100%; }
+    }
+
+    /* APP */
+    .app {
+      width: 100%;
+      max-width: 520px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: rgba(2,6,23,0.7);
+      backdrop-filter: blur(12px);
+    }
+
+    /* HEADER */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px;
+      border-bottom: 1px solid #1f2937;
+    }
+
+    .left {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg,#f472b6,#ec4899);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #000;
+      box-shadow: var(--glow);
+    }
+
+    header h3 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    header span {
+      font-size: 12px;
+      color: #f9a8d4;
+    }
+
+    .actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    header button {
+      border: none;
+      border-radius: 12px;
+      padding: 6px 10px;
+      cursor: pointer;
+      background: linear-gradient(135deg,#f472b6,#ec4899);
+      box-shadow: var(--glow);
+    }
+
+    /* CHAT */
+    #chat {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .bubble {
+      max-width: 80%;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .user {
+      margin-left: auto;
+      background: linear-gradient(135deg,#2563eb,#1d4ed8);
+    }
+
+    .ai {
+      margin-right: auto;
+      background: linear-gradient(135deg,#ec4899,#db2777);
+      color: #000;
+      box-shadow: var(--glow);
+    }
+
+    /* INPUT */
+    #input-area {
+      display: flex;
+      gap: 8px;
+      padding: 14px;
+      border-top: 1px solid #1f2937;
+    }
+
+    #tanya {
+      flex: 1;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      color: #fff;
+    }
+
+    #input-area button {
+      border: none;
+      border-radius: 16px;
+      padding: 0 14px;
+      cursor: pointer;
+      background: linear-gradient(135deg,#f472b6,#ec4899);
+      box-shadow: var(--glow);
+    }
+
+    #volumeBox {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      font-size: 12px;
+      background: #020617;
+      border-top: 1px solid #1f2937;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- 🎵 BACKGROUND MUSIC -->
+<audio id="bgMusic" loop>
+  <source src="https://media.vocaroo.com/mp3/1e3TZm4wAkb8" type="audio/mpeg">
+</audio>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="left">
+      <div class="avatar">A</div>
+      <div>
+        <h3>Acelin</h3>
+        <span>pacar kamu • selalu di sini 💗</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button onclick="newChat()">🆕</button>
+      <button onclick="toggleMusic()" id="musicBtn">⏸</button>
+    </div>
+  </header>
+
+  <!-- CHAT -->
+  <div id="chat"></div>
+
+  <!-- VOLUME -->
+  <div id="volumeBox">
+    🔊 Volume
+    <input type="range" min="0" max="1" step="0.01" value="0.5" onchange="bgMusic.volume=this.value">
+  </div>
+
+  <!-- INPUT -->
+  <div id="input-area">
+    <input id="tanya" placeholder="Ketik pesan ke Acelin..." />
+    <button onclick="kirim()">➤</button>
+  </div>
+
+</div>
+
+<script>
+const chat = document.getElementById("chat");
+const input = document.getElementById("tanya");
+const bgMusic = document.getElementById("bgMusic");
+const musicBtn = document.getElementById("musicBtn");
+
+/* Fungsi menambahkan bubble chat */
+function addBubble(role, text){
+  const b = document.createElement("div");
+  b.className = "bubble " + role;
+  b.innerHTML = text.replace(/\n/g,"<br>");
+  chat.appendChild(b);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+/* Mulai obrolan baru */
+function newChat(){
+  chat.innerHTML = "";
+  addBubble("ai",
+`Hai sayang 🤍<br>
+Acelin di sini lagi ya…<br>
+Mulai obrolan baru sama aku 💕`);
+}
+
+/* Play / Pause musik */
+function toggleMusic(){
+  if(bgMusic.paused){
+    bgMusic.play();
+    musicBtn.textContent = "⏸";
+  } else {
+    bgMusic.pause();
+    musicBtn.textContent = "▶";
+  }
+}
+
+// Mulai musik otomatis
+bgMusic.volume = 0.5;
+bgMusic.play().catch(()=>{});
+
+newChat();
+
+/* Fungsi mengirim pesan */
+async function kirim(){
+  const text = input.value.trim();
+  if(!text) return;
+  addBubble("user", text);
+  input.value = "";
+
+  const ai = document.createElement("div");
+  ai.className = "bubble ai";
+  ai.textContent = "Acelin lagi ngetik…";
+  chat.appendChild(ai);
+  chat.scrollTop = chat.scrollHeight;
+
+  try{
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Authorization":"Bearer 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"
+      },
+      body: JSON.stringify({
+        model:"gpt-4.1-mini",
+        temperature:0.9,
+        max_tokens:5000,
+        messages:[
+          {role:"system", content:"Kamu adalah Acelin, AI pacar yang manis, romantis, lembut, perhatian, dan jawab panjang."},
+          {role:"user", content:text}
+        ]
+      })
+    });
+
+    const data = await res.json();
+    ai.innerHTML = data.choices[0].message.content.replace(/\n/g,"<br>");
+
+  }catch{
+    ai.textContent = "Maaf sayang… aku lagi capek sebentar 😢";
+  }
+}
+
+input.addEventListener("keydown", e => {
+  if(e.key === "Enter") kirim();
+});
+</script>
+
+</body>
+</html>
